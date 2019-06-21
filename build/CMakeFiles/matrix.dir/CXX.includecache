@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/piero/Development/Cpp/POO2/unidad-6-programacion-concurrente-pmariniutec/main.cpp
+iostream
+-
+matrix.h
+/home/piero/Development/Cpp/POO2/unidad-6-programacion-concurrente-pmariniutec/matrix.h
+matrix_threads.h
+/home/piero/Development/Cpp/POO2/unidad-6-programacion-concurrente-pmariniutec/matrix_threads.h
+
+/home/piero/Development/Cpp/POO2/unidad-6-programacion-concurrente-pmariniutec/matrix.h
+vector
+-
+iostream
+-
+stdexcept
+-
+random
+-
+chrono
+-
+
+/home/piero/Development/Cpp/POO2/unidad-6-programacion-concurrente-pmariniutec/matrix_threads.h
+vector
+-
+iostream
+-
+stdexcept
+-
+random
+-
+chrono
+-
+thread
+-
+
