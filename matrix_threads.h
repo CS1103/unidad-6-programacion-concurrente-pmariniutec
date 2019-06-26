@@ -1,20 +1,22 @@
 #ifndef PMATRIX_H
 #define PMATRIX_H
 
+
+#include <chrono>
 #include <vector>
 #include <iostream>
 #include <stdexcept>
 #include <random>
-#include <chrono>
 #include <thread>
 
 #define UPPER 100
 #define LOWER 0
 
+
 template<typename T>
 class PMatrix {
   public:
-    PMatrix(std::size_t width, std::size_t height);
+    PMatrix(long long width, long long height, long long threads);
 	~PMatrix();
 
     PMatrix(const PMatrix &rhs);
@@ -28,22 +30,20 @@ class PMatrix {
   private:
 	// NOTE: Threaded multiplication helper
 	template<typename X>
-	friend void threadedMultiplication(PMatrix<X> &ret, const PMatrix<X> m1, const PMatrix<X> m2, const std::size_t threadID);
-	std::size_t m_NumThreads = 3;
+	friend void threadedMultiplication(PMatrix<X> &ret, const PMatrix<X> &m1, const PMatrix<X> &m2, const long long threadID);
+	long long m_NumThreads;
 
-	std::size_t getIndex(std::size_t i, std::size_t j) const;
-
-	std::size_t m_Columns, m_Rows;
-	std::vector<T> data;
+	long long m_Columns, m_Rows;
+	std::vector<std::vector<T>> data;
 };
 
 template<typename X>
-void threadedMultiplication(PMatrix<X> &ret, const PMatrix<X> m1, const PMatrix<X> m2, const std::size_t threadID) {
-  const std::size_t numElements = (m1.m_Columns * m1.m_Rows);
-  const std::size_t numOperations = numElements / m1.m_NumThreads;
-  const std::size_t restOperations = numElements % m1.m_NumThreads;
+void threadedMultiplication(PMatrix<X> &ret, const PMatrix<X> &m1, const PMatrix<X> &m2, const long long threadID) {
+  const long long numElements = m1.m_Columns * m1.m_Rows;
+  const long long numOperations = numElements / m1.m_NumThreads;
+  const long long restOperations = numElements % m1.m_NumThreads;
 
-  std::size_t start_op, end_op;
+  long long start_op, end_op;
 
   if (threadID == 0) {
 	start_op = numOperations * threadID;
@@ -53,25 +53,24 @@ void threadedMultiplication(PMatrix<X> &ret, const PMatrix<X> m1, const PMatrix<
 	end_op = (numOperations * (threadID + 1)) + restOperations;
   }
 
-  for (std::size_t op = start_op; op < end_op; ++op) {
-	const std::size_t row = op % m2.m_Rows;
-	const std::size_t col = op / m1.m_Columns;
-	// std::cout << "Thread " << threadID << ": rc " << row << ' ' << col << '\n';
+  for (long long op = start_op; op < end_op; ++op) {
+	const long long row = op % m2.m_Rows;
+	const long long col = op / m1.m_Columns;
 	X temp = 0;
-	for (std::size_t i = 0; i < m1.m_Columns; ++i) {
-	  temp += m1.data.at(m1.getIndex(row, i)) * m2.data.at(m2.getIndex(i, col));
-	  // std::cout << "Thread " << threadID << ": " << m1.getIndex(row, i) << " * " << m2.getIndex(i, col) << ' ' << ret.getIndex(row, col) << '\n';
+	for (long long i = 0; i < m1.m_Columns; ++i) {
+	  temp += m1.data.at(row).at(i) * m2.data.at(i).at(col);
 	}
-	// std::cout << "Thread " << threadID << ": " << ret.getIndex(row, col) << ' ' << temp << '\n';
-	ret.data.insert(ret.data.begin() + ret.getIndex(row, col), temp);
+	ret.data[row][col] = temp;
   }
 }
 
 
 template<typename T>
-PMatrix<T>::PMatrix(std::size_t width, std::size_t height) : m_Columns(width), m_Rows(height) {
-  data.resize(m_Columns * m_Rows);
-  // randomFill();
+PMatrix<T>::PMatrix(long long width, long long height, long long threads) : m_Columns(width), m_Rows(height), m_NumThreads(threads) {
+  data.resize(m_Rows);
+  for (int i = 0; i < data.size(); ++i) {
+    data[i].resize(m_Columns);
+  }
 }
 
 template<typename T>
@@ -92,14 +91,14 @@ void PMatrix<T>::randomFill() {
   std::default_random_engine re(seed);
   std::uniform_real_distribution<T> unif(LOWER, UPPER);
 
-  for (std::size_t i = 0; i < m_Rows; ++i) {
-	for (std::size_t j = 0; j < m_Columns; ++j) {
-	  data.insert(data.begin() + getIndex(i, j), unif(re));
+  for (long long i = 0; i < m_Rows; ++i) {
+	for (long long j = 0; j < m_Columns; ++j) {
+	  data[i][j] = unif(re);
 	}
   }
 }
 
-// Template specialization to use uniform_std::size_t_distribution.
+// Template specialization to use uniform_long long_distribution.
 template<>
 void PMatrix<int>::randomFill() {
 
@@ -107,23 +106,18 @@ void PMatrix<int>::randomFill() {
   std::default_random_engine re(seed);
   std::uniform_int_distribution<int> unif(LOWER, UPPER);
 
-  for (std::size_t i = 0; i < m_Rows; ++i) {
-	for (std::size_t j = 0; j < m_Columns; ++j) {
-	  data.insert(data.begin() + getIndex(i, j), unif(re));
+  for (long long i = 0; i < m_Rows; ++i) {
+	for (long long j = 0; j < m_Columns; ++j) {
+	  data[i][j] = unif(re);
 	}
   }
 }
 
 template<typename T>
-std::size_t PMatrix<T>::getIndex(std::size_t i, std::size_t j) const {
-  return i * m_Columns + j;
-}
-
-template<typename T>
 void PMatrix<T>::print() {
-  for (std::size_t i = 0; i < m_Rows; ++i) {
-	for (std::size_t j = 0; j < m_Columns; ++j) {
-	  std::cout << data.at(getIndex(i, j)) << ' ';
+  for (long long i = 0; i < m_Rows; ++i) {
+	for (long long j = 0; j < m_Columns; ++j) {
+	  std::cout << data[i][j] << ' ';
 	}
 	std::cout << '\n';
   }
@@ -145,16 +139,24 @@ PMatrix<T> PMatrix<T>::operator*(const PMatrix &rhs) {
 	throw std::runtime_error("Row Count on A doesn't match Column Count on B");
   }
 
-  PMatrix<T> ret {m_Columns, rhs.m_Rows};
+  PMatrix<T> ret {m_Columns, rhs.m_Rows, m_NumThreads};
+
+
+  auto t1 = std::chrono::high_resolution_clock::now();
 
   std::thread threads[m_NumThreads];
 
-  for (std::size_t i = 0; i < m_NumThreads; ++i) {
-	threads[i] = std::thread(threadedMultiplication<T>, std::ref(ret), *this, rhs, i);
+  for (long long i = 0; i < m_NumThreads; ++i) {
+	threads[i] = std::thread(threadedMultiplication<T>, std::ref(ret), std::ref(*this), std::ref(rhs), i);
   }
-  for (std::size_t i = 0; i < m_NumThreads; ++i) {
+  for (long long i = 0; i < m_NumThreads; ++i) {
 	threads[i].join();
   }
+
+  auto t2 = std::chrono::high_resolution_clock::now();
+
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+  std::cout << "Time with " << m_NumThreads << " threads: " << duration << " ms" << '\n';
 
   return ret;
 }

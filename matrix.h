@@ -105,6 +105,8 @@ Matrix<T> Matrix<T>::operator*(const Matrix &rhs) {
 
   Matrix<T> ret {m_Columns, rhs.m_Rows};
 
+  auto t1 = std::chrono::high_resolution_clock::now();
+
   for (std::size_t i = 0; i < m_Columns; ++i) {
 	for (std::size_t j = 0; j < rhs.m_Rows; ++j) {
 	  auto temp = data.at(i * m_Rows) * rhs.data.at(j);
@@ -114,6 +116,12 @@ Matrix<T> Matrix<T>::operator*(const Matrix &rhs) {
 	  ret.data.insert(ret.data.begin() + getIndex(i, j), temp);
 	}
   }
+
+  auto t2 = std::chrono::high_resolution_clock::now();
+
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+  std::cout << "Time with " << 1 << " threads: " << duration << " ms" << '\n';
+
   return ret;
 }
 

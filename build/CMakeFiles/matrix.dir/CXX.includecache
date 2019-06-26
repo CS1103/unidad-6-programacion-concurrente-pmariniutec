@@ -27,6 +27,8 @@ chrono
 -
 
 /home/piero/Development/Cpp/POO2/unidad-6-programacion-concurrente-pmariniutec/matrix_threads.h
+chrono
+-
 vector
 -
 iostream
@@ -34,8 +36,6 @@ iostream
 stdexcept
 -
 random
--
-chrono
 -
 thread
 -

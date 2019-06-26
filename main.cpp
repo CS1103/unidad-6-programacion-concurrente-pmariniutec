@@ -2,26 +2,46 @@
 #include "matrix.h"
 #include "matrix_threads.h"
 
+constexpr long long size = 1024;
+
 int main() {
-  /*
-  Matrix<int> m1{3, 3};
-  Matrix<int> m2{3, 3};
 
-  auto m3 = m1 * m2;
-  m1.print();
-  m2.print();
-  m3.print();
+  {
+	Matrix<int> m1{size, size};
+	Matrix<int> m2{size, size};
 
-  */
-  std::cout << "\nThreaded Matrix:\n";
+  }
 
-  PMatrix<int> m4{3, 3};
-  m4.randomFill();
-  PMatrix<int> m5{3, 3};
-  m5.randomFill();
+  {
+	PMatrix<int> m1{size, size, 2};
+	m1.randomFill();
+	PMatrix<int> m2{size, size, 2};
+	m2.randomFill();
 
-  auto m6 = m4 * m5;
-  m4.print();
-  m5.print();
-  m6.print();
+	auto m3 = m1 * m2;
+  }
+  {
+	PMatrix<int> m1{size, size, 4};
+	m1.randomFill();
+	PMatrix<int> m2{size, size, 4};
+	m2.randomFill();
+
+	auto m3 = m1 * m2;
+  }
+  {
+	PMatrix<int> m1{size, size, 8};
+	m1.randomFill();
+	PMatrix<int> m2{size, size, 8};
+	m2.randomFill();
+
+	auto m3 = m1 * m2;
+  }
+  {
+	PMatrix<int> m1{size, size, 16};
+	m1.randomFill();
+	PMatrix<int> m2{size, size, 16};
+	m2.randomFill();
+
+	auto m3 = m1 * m2;
+  }
 }
